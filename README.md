@@ -1,2 +1,2 @@
 # artificial-intelligence
-Practical activities carried out in the artificial intelligence discipline
+Atividades práticas e anotações desenvolvidas na disciplina de Inteligência Artificial Computacional
