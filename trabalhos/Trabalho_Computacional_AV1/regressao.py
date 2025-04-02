@@ -135,7 +135,7 @@ for rodada in range(rodadas):
         0
     ]
 
-    y_predicao_MQO_tradicional = X_teste@B_MQO_regularizado_MC
+    y_predicao_MQO_tradicional = X_teste@B_MQO_tradicional_MC
     y_predicao_MQO_regularizado = [X_teste@Bs_MQO_regularizado_MC[i] for i in range(len(Bs_MQO_regularizado_MC))]
     y_predicao_media = X_teste@B_media_MC
 
