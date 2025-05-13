@@ -43,7 +43,7 @@ class Adaline:
             if epoch > 1:
                 # Verifica se o módulo da diferença do EQM atual com o anterior é menor que ϵ ou se
                 # atingiu o número máximo de épocas
-                if abs(self.__EQMs[-1] - self.__EQMs[-2]) < self.__ϵ or epoch >= self.__epochs:
+                if abs(self.__EQMs[-1] - self.__EQMs[-2]) <= self.__ϵ or epoch >= self.__epochs:
                     print(f"Convergiu após {epoch} épócas")
                     break
             elif epoch == self.__epochs:
