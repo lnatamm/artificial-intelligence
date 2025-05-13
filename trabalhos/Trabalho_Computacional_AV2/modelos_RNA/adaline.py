@@ -43,14 +43,14 @@ class Adaline:
             if epoch > 1:
                 # Verifica se o módulo da diferença do EQM atual com o anterior é menor que ϵ ou se
                 # atingiu o número máximo de épocas
-                if abs(self.__EQMs[-1] - self.__EQMs[-2]) < self.__ϵ or epoch >= self.__epochs:
+                if abs(self.__EQMs[-1] - self.__EQMs[-2]) <= self.__ϵ or epoch >= self.__epochs:
                     print(f"Convergiu após {epoch} épócas")
                     break
             elif epoch == self.__epochs:
                 print(f"Número máximo de épocas atingido: {self.__epochs}")
                 break
 
-    def predict(self, X):
+    def predict_classification(self, X):
         # Adiciona o -1 como primeira coluna (bias)
         X = np.hstack([-1 * np.ones((X.shape[0], 1)), X])
         # Calcula a combinação linear
