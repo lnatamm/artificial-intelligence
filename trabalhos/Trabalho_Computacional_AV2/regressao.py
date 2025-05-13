@@ -5,8 +5,6 @@ from modelos_RNA.adaline import Adaline
 from modelos_RNA.multi_layer_perceptron import MLP
 from config import Config
 
-plot_graph = True
-
 # Leitura dos dados
 aerogerador = np.loadtxt("trabalhos\\Trabalho_Computacional_AV2\\datasets\\aerogerador.dat")
 
@@ -65,9 +63,9 @@ for round in range(Config.REGRESSION_N_ROUNDS):
     # Etapa de treinamento
     # Adaline
     adaline.fit(X_train.reshape(-1, 1), y_train)
-    # if Config.REGRESSION_PLOT_GRAPH:
-    #     plt.figure(3)
-    #     adaline.plot_EQMs()
+    if Config.REGRESSION_PLOT_GRAPH:
+        plt.figure(3)
+        adaline.plot_EQMs()
     predictions_adaline = adaline.predict_regression(X_test.reshape(-1, 1))
     # MSE (Erro Quadrático Médio)
     EQM_adaline = np.mean((y_test - predictions_adaline) ** 2)
@@ -82,6 +80,11 @@ for round in range(Config.REGRESSION_N_ROUNDS):
 
     # Multi-Layer Perceptron
     mlp.train_regression(X_train.reshape(-1, 1), y_train.reshape(-1, 1), X_validation.reshape(-1, 1), y_validation.reshape(-1, 1))
+    if Config.REGRESSION_PLOT_GRAPH:
+        plt.figure(4)
+        mlp.plot_EQMs()
+    plt.show()
+    bp=1
     predictions_mlp = []
     for x in X_test:
         x = np.vstack((-1, x))
