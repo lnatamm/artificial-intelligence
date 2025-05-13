@@ -50,7 +50,7 @@ class Adaline:
                 print(f"Número máximo de épocas atingido: {self.__epochs}")
                 break
 
-    def predict(self, X):
+    def predict_classification(self, X):
         # Adiciona o -1 como primeira coluna (bias)
         X = np.hstack([-1 * np.ones((X.shape[0], 1)), X])
         # Calcula a combinação linear

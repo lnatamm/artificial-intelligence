@@ -61,6 +61,7 @@ class MLP:
             if j == 0:
                 # Combinação linear
                 layer_input = W.T @ x_sample
+                layer_input = layer_input.reshape(-1, 1)
                 # Aplicação da função de ativação
                 layer_output = self.__sigmoid_logistic(layer_input)
                 self.__layer_inputs.append(layer_input)
@@ -91,6 +92,7 @@ class MLP:
             if j == 0:
                 # Combinação linear
                 layer_input = W.T @ x_sample
+                layer_input = layer_input.reshape(-1, 1)
                 # Sem função de ativação, pois a tarefa é de regressão
                 layer_output = layer_input
                 self.__layer_inputs.append(layer_input)
@@ -214,18 +216,19 @@ class MLP:
         for i in range(n_train_samples):
             # N-ésima amostra de Xtreino
             x_sample = X[i]
-            x_sample.shape = (x_sample.shape[0], 1)  # Reshape para garantir que seja uma matriz 2D
 
             # Forward para obter as previsões para a amostra
             y_pred = self.forward_classification(x_sample)
 
             # N-ésimo rótulo de Xtreino
             d = y[i]
-
+            d = d.reshape(-1, 1)
             # Calcula o erro quadrático individual (EQI)
             EQI = 0
             for j in range(self.__m):  # Para cada neurônio na camada de saída
                 EQI += (d[j] - y_pred[0][j]) ** 2
+            if type(EQI) == np.ndarray:
+                EQI = np.sum(EQI)
 
             # Soma o EQI ao EQM
             EQM += EQI
@@ -275,7 +278,7 @@ class MLP:
         min_eqm = min(EQMs)
         return EQMs.index(min_eqm)
 
-    def train_classification(self, X, y, X_validation, y_validation, epochs):
+    def train_classification(self, X, y, X_validation, y_validation):
         """
         Treinamento do modelo para classificação.
         X: Dados de entrada
@@ -286,18 +289,19 @@ class MLP:
         """
         # Adiciona o -1 como primeira coluna (bias)
         X = np.hstack([-1 * np.ones((X.shape[0], 1)), X])
+        X_validation = np.hstack([-1 * np.ones((X_validation.shape[0], 1)), X_validation])
         EQM = 1
         # Salva os EQMs de validação
         EQMs_validation = []
         # Contador de tolerância
         tolleration_count = 0
         while True:
-            for epoch in range(epochs):
+            for epoch in range(self.__epochs):
                 for i in range(X.shape[0]):  # Passa cada amostra individualmente
                     x_sample = X[i]
-                    x_sample.shape = (x_sample.shape[0], 1)  # Reshape para garantir o shape correto
+                    x_sample = x_sample.reshape(len(x_sample), 1)
                     y_sample = y[i]
-                    y_sample.shape = (y_sample.shape[0], 1)  # Reshape para garantir o shape correto
+                    y_sample = y_sample.reshape(-1, 1)
                     output = self.forward_classification(x_sample)
                     # Atualiza os pesos
                     self.__backward_classification(x_sample, y_sample)
@@ -321,6 +325,7 @@ class MLP:
                                 if tolleration_count >= self.__tolleration:
                                     print(f"Early stopping ativado após {epoch} épocas devido à piora contínua.")
                                     self.__weights = self.__weights_history[self.__least_eqm(self.__EQMs)]
+                                    return
                             else:
                                 tolleration_count = 0  # Reseta a contagem se o modelo melhorar
                     # Verifica se EQM atual é menor que a precisão do modelo
@@ -328,12 +333,10 @@ class MLP:
                         print(f"Convergiu após {epoch} épocas")
                         return
                 
-                # Verifica se o número máximo de épocas foi atingido
-                if epoch >= self.__epochs:
-                    print(f"Número máximo de épocas atingido: {self.__epochs}")
-                    return
+            print(f"Número de épocas atingido: {self.__epochs}")
+            return
     
-    def train_regression(self, X, y, X_validation, y_validation, epochs):
+    def train_regression(self, X, y, X_validation, y_validation):
         # Adiciona o -1 como primeira coluna (bias)
         X = np.hstack([-1 * np.ones((X.shape[0], 1)), X])
         X_validation = np.hstack([-1 * np.ones((X_validation.shape[0], 1)), X_validation])
@@ -343,7 +346,7 @@ class MLP:
         # Contador de tolerância
         tolleration_count = 0
         while True:
-            for epoch in range(epochs):
+            for epoch in range(self.__epochs):
                 for i in range(X.shape[0]):  # Passa cada amostra individualmente
                     x_sample = X[i]
                     x_sample.shape = (x_sample.shape[0], 1)  # Reshape para garantir o shape correto
@@ -372,21 +375,27 @@ class MLP:
                                 if tolleration_count >= self.__tolleration:
                                     print(f"Early stopping ativado após {epoch} épocas devido à piora contínua.")
                                     self.__weights = self.__weights_history[self.__least_eqm(self.__EQMs)]
+                                    return
                             else:
                                 tolleration_count = 0  # Reseta a contagem se o modelo melhorar
                     # Verifica se EQM atual é menor que a precisão do modelo
                     if self.__EQMs[-1] < self.__ϵ:
                         print(f"Convergiu após {epoch} épocas")
                         return
-                
-                # Verifica se o número máximo de épocas foi atingido
-                if epoch >= self.__epochs:
-                    print(f"Número máximo de épocas atingido: {self.__epochs}")
-                    return
-
+            print(f"Número máximo de épocas atingido: {self.__epochs}")
+            return
     def predict_classification(self, X):
         return self.forward_classification(X)
 
     def predict_regression(self, X):
         # Retorna a combinação linear
         return self.forward_regression(X)
+    
+    def plot_EQMs(self):
+        """
+        Plota os EQMs
+        """
+        plt.plot(range(1, len(self.__EQMs) + 1), self.__EQMs, marker='o')
+        plt.title('EQM')
+        plt.xlabel('Épocas')
+        plt.ylabel('EQM')
