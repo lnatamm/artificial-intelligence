@@ -33,16 +33,15 @@ if Config.REGRESSION_PLOT_GRAPH:
     plt.ylabel('Potência (kW)')
     plt.scatter(X, y, color='red', label='Dados Normalizados')
 
-# Instanciação os modelo
-adaline = Adaline(η=0.0001, ϵ=0.0001, epochs=1000)
-mlp = MLP(input_size=1, q=[2, 1], m=1, η=0.0001, ϵ=0.0001, tolleration=10, epochs=Config.REGRESSION_EPOCHS)
-
 eqms_adaline = []
 r_s_adaline = []
 eqms_mlp = []
 r_s_mlp = []
 
 for round in range(Config.REGRESSION_N_ROUNDS):
+    # Instanciação os modelo
+    adaline = Adaline(η=0.0001, ϵ=0.0001, epochs=Config.REGRESSION_EPOCHS)
+    mlp = MLP(input_size=1, q=[2, 1], m=1, η=0.0001, ϵ=0.0001, tolleration=10, epochs=Config.REGRESSION_EPOCHS)
     print(f"Rodada: {round + 1}")
     # Aleatorização dos dados
     index = np.random.permutation(aerogerador.shape[0])

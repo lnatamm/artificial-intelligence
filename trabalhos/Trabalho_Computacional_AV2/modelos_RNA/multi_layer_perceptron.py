@@ -41,6 +41,7 @@ class MLP:
 
     # Função de ativação sigmoide logística
     def __sigmoid_logistic(self, x):
+        x = np.clip(x, -500, 500)
         return 1 / (1 + np.exp(-x))
 
     # Derivada da função de ativação sigmoide logística
@@ -64,6 +65,7 @@ class MLP:
                 layer_input = layer_input.reshape(-1, 1)
                 # Aplicação da função de ativação
                 layer_output = self.__sigmoid_logistic(layer_input)
+                layer_output = layer_output.reshape(-1, 1)
                 self.__layer_inputs.append(layer_input)
                 self.__layer_outputs.append(layer_output)
             # Camadas ocultas e de saída
@@ -74,6 +76,7 @@ class MLP:
                 layer_input = W.T @ y_bias
                 # Aplicação da função de ativação
                 layer_output = self.__sigmoid_logistic(layer_input)
+                layer_output = layer_output.reshape(-1, 1)
                 self.__layer_inputs.append(layer_input)
                 self.__layer_outputs.append(layer_output)
         # Retorna a saída da última camada
@@ -322,10 +325,10 @@ class MLP:
                             if EQMs_validation[-1] > EQMs_validation[-2]:
                                 tolleration_count += 1
                                 print(f"Modelo piorou. Contagem de tolerância: {tolleration_count}/{self.__tolleration}")
-                                if tolleration_count >= self.__tolleration:
-                                    print(f"Early stopping ativado após {epoch} épocas devido à piora contínua.")
-                                    self.__weights = self.__weights_history[self.__least_eqm(self.__EQMs)]
-                                    return
+                                # if tolleration_count >= self.__tolleration:
+                                #     print(f"Early stopping ativado após {epoch} épocas devido à piora contínua.")
+                                #     self.__weights = self.__weights_history[self.__least_eqm(self.__EQMs)]
+                                #     return
                             else:
                                 tolleration_count = 0  # Reseta a contagem se o modelo melhorar
                     # Verifica se EQM atual é menor que a precisão do modelo
