@@ -14,7 +14,6 @@ with open("trabalhos\\Trabalho_Computacional_AV2\\datasets\\coluna_vertebral.csv
     reader = csv.reader(csvfile)
     coluna_vertebral = np.array(list(reader))
 # Classificação com múltiplas classes
-#coluna_vertebral = np.genfromtxt("trabalhos\\Trabalho_Computacional_AV2\\datasets\\coluna_vertebral.csv", delimiter=",", dtype=None, encoding='utf-8')
 # Separação das variável dependente e independentes
 X = coluna_vertebral[:, :-1]  # Variável independente (todas as colunas menos a última)
 # Converte X para float
@@ -42,13 +41,36 @@ confusion_matrices_adaline = []
 accuracies_mlp = []
 accuracies_adaline = []
 
-for round in range(Config.CLASSIFICATION_N_ROUNDS):
+for round in range(Config.CLASSIFICATION_MULTICLASS_N_ROUNDS):
     # Instanciando os modelos
-    adaline = Adaline(η=Config.CLASSIFICATION_LEARNING_RATE, input_size=6, m=3, ϵ=Config.CLASSIFICATION_EPSILON, epochs=Config.CLASSIFICATION_EPOCHS)
-    mlp = MLP(input_size=6, q=[2], m=3, η=Config.CLASSIFICATION_LEARNING_RATE, ϵ=Config.CLASSIFICATION_EPSILON, tolleration=10, epochs=Config.CLASSIFICATION_EPOCHS)
-    mlp_underfitted = MLP(input_size=6, q=[1], m=3, η=Config.CLASSIFICATION_LEARNING_RATE, ϵ=Config.CLASSIFICATION_EPSILON, tolleration=10, epochs=Config.CLASSIFICATION_EPOCHS)
-    mlp_overfitted = MLP(input_size=6, q=[32, 16, 8], m=3, η=Config.CLASSIFICATION_LEARNING_RATE, ϵ=Config.CLASSIFICATION_EPSILON, tolleration=10, epochs=Config.CLASSIFICATION_EPOCHS)
-    print(f"Rodada: {round + 1}")
+    adaline = Adaline(η=Config.CLASSIFICATION_MULTICLASS_LEARNING_RATE, input_size=6, m=3, ϵ=Config.CLASSIFICATION_MULTICLASS_EPSILON, epochs=Config.CLASSIFICATION_MULTICLASS_EPOCHS)
+    mlp = MLP(
+        input_size=6,
+        q=Config.CLASSIFICATION_MULTICLASS_MLP_LAYERS,
+        m=Config.CLASSIFICATION_MULTICLASS_MLP_OUTPUT_SIZE,
+        η=Config.CLASSIFICATION_MULTICLASS_LEARNING_RATE,
+        ϵ=Config.CLASSIFICATION_MULTICLASS_EPSILON,
+        tolleration=Config.CLASSIFICATION_MULTICLASS_MLP_TOLLERATION,
+        epochs=Config.CLASSIFICATION_MULTICLASS_EPOCHS
+    )
+    mlp_underfitted = MLP(
+        input_size=6,
+        q=Config.CLASSIFICATION_MULTICLASS_MLP_UNDERFITTED_LAYERS,
+        m=Config.CLASSIFICATION_MULTICLASS_MLP_OUTPUT_SIZE,
+        η=Config.CLASSIFICATION_MULTICLASS_LEARNING_RATE,
+        ϵ=Config.CLASSIFICATION_MULTICLASS_EPSILON,
+        tolleration=Config.CLASSIFICATION_MULTICLASS_MLP_TOLLERATION,
+        epochs=Config.CLASSIFICATION_MULTICLASS_EPOCHS
+    )
+    mlp_overfitted = MLP(
+        input_size=6,
+        q=Config.CLASSIFICATION_MULTICLASS_MLP_OVERFITTED_LAYERS,
+        m=Config.CLASSIFICATION_MULTICLASS_MLP_OUTPUT_SIZE,
+        η=Config.CLASSIFICATION_MULTICLASS_LEARNING_RATE,
+        ϵ=Config.CLASSIFICATION_MULTICLASS_EPSILON,
+        tolleration=Config.CLASSIFICATION_MULTICLASS_MLP_TOLLERATION,
+        epochs=Config.CLASSIFICATION_MULTICLASS_EPOCHS
+    )
     # Aleatorização dos dados
     index = np.random.permutation(coluna_vertebral.shape[0])
     X_shuffled = X[index]
@@ -70,8 +92,6 @@ for round in range(Config.CLASSIFICATION_N_ROUNDS):
     X_validation = X_test[:validation_size]
     y_validation = y_test[:validation_size]
     # Etapa de treinamento
-    # adaline.fit(X_train, y_train)
-    # mlp.train(X_train, y_train, X_validation, y_validation)
     adaline.fit_multiclass(X_train, y_train)
     adaline_predictions = adaline.predict_multiclass(X_test)
     adaline_predictions = np.argmax(adaline_predictions, axis=1)
@@ -84,10 +104,6 @@ for round in range(Config.CLASSIFICATION_N_ROUNDS):
     for x in X_test:
         x = np.hstack([[-1], x])
         prediction = mlp.predict_classification(x.reshape(-1, 1))
-        # if prediction[0] > prediction[1]:
-        #     predictions_mlp.append(1)
-        # else:
-        #     predictions_mlp.append(0)
         mlp_predictions.append(np.argmax(prediction))
     if round == 0:
         mlp_overfitted.train(X_train, y_train, X_validation, y_validation)
@@ -193,12 +209,6 @@ for round in range(Config.CLASSIFICATION_N_ROUNDS):
         plt.title(f'Matriz de Confusão MLP Underfitted - Acurácia: {accuracy_mlp_underfitted:.2f}')
 
         plt.show()
-    # for prediction in adaline_predictions:
-    #     # if prediction[0] > prediction[1]:
-    #     #     predictions_adaline.append(1)
-    #     # else:
-    #     #     predictions_adaline.append(0)
-    #     adaline_predictions.append(np.argmax(prediction))
 
     mlp_class_0_0 = 0
     mlp_class_0_1 = 0
@@ -241,26 +251,6 @@ for round in range(Config.CLASSIFICATION_N_ROUNDS):
 
     confusion_matrices_mlp.append(confusion_matrix_mlp)
 
-    # for i in range(len(adaline_predictions)):
-    #     if adaline_predictions[i] == 0 and y_test[i] == 0:
-    #         class_0_0 += 1
-    #     elif adaline_predictions[i] == 0 and y_test[i] == 1:
-    #         class_0_1 += 1
-    #     elif adaline_predictions[i] == 0 and y_test[i] == 2:
-    #         class_0_2 += 1
-    #     elif adaline_predictions[i] == 1 and y_test[i] == 0:
-    #         class_1_0 += 1
-    #     elif adaline_predictions[i] == 1 and y_test[i] == 1:
-    #         class_1_1 += 1
-    #     elif adaline_predictions[i] == 1 and y_test[i] == 2:
-    #         class_1_2 += 1
-    #     elif adaline_predictions[i] == 2 and y_test[i] == 0:
-    #         class_2_0 += 1
-    #     elif adaline_predictions[i] == 2 and y_test[i] == 1:
-    #         class_2_1 += 1
-    #     elif adaline_predictions[i] == 2 and y_test[i] == 2:
-    #         class_2_2 += 1
-    
     adaline_class_0_0 = 0
     adaline_class_0_1 = 0
     adaline_class_0_2 = 0
@@ -421,59 +411,3 @@ if Config.CLASSIFICATION_PLOT_GRAPH:
     plt.title(f'Matriz de Confusão - Adaline (Mínima Acurácia) - Acurácia: {min_accuracy_adaline:.2f}')
 
     plt.show()
-    # plt.figure(nfig)
-    # nfig += 1
-    # sns.heatmap(min_confusion_matrix_simple_perceptron, annot=True, fmt=".2f", cmap="Blues")
-    # plt.title(f'Matriz de Confusão - Perceptron Simples (Menor Acurácia) - Acurácia: {min_accuracy_simple_perceptron:.2f} - Sensibilidade: {min_sensitivity_simple_perceptron:.2f} - Especificidade: {min_specificity_simple_perceptron:.2f}')
-    # plt.figure(nfig)
-    # nfig += 1
-    # sns.heatmap(max_confusion_matrix_simple_perceptron, annot=True, fmt=".2f", cmap="Blues")
-    # plt.title(f'Matriz de Confusão - Perceptron Simples (Maior Acurácia) - Acurácia: {max_accuracy_simple_perceptron:.2f} - Sensibilidade: {max_sensitivity_simple_perceptron:.2f} - Especificidade: {max_specificity_simple_perceptron:.2f}')
-    # plt.figure(nfig)
-    # nfig += 1
-    # sns.heatmap(min_confusion_matrix_adaline, annot=True, fmt=".2f", cmap="Blues")
-    # plt.title(f'Matriz de Confusão - Adaline (Menor Acurácia) - Acurácia: {min_accuracy_adaline:.2f} - Sensibilidade: {min_sensitivity_adaline:.2f} - Especificidade: {min_specificity_adaline:.2f}')
-    # plt.figure(nfig)
-    # nfig += 1
-    # sns.heatmap(max_confusion_matrix_adaline, annot=True, fmt=".2f", cmap="Blues")
-    # plt.title(f'Matriz de Confusão - Adaline (Maior Acurácia) - Acurácia: {max_accuracy_adaline:.2f} - Sensibilidade: {max_sensitivity_adaline:.2f} - Especificidade: {max_specificity_adaline:.2f}')
-    
-    # plt.figure(nfig)
-    # nfig += 1
-    # sns.heatmap(min_confusion_matrix_mlp, annot=True, fmt=".2f", cmap="Blues")
-    # plt.title(f'Matriz de Confusão - MLP (Menor Acurácia) - Acurácia: {min_accuracy_mlp:.2f} - Sensibilidade: {min_sensitivity_mlp:.2f} - Especificidade: {min_specificity_mlp:.2f}')
-    # plt.figure(nfig)
-    # nfig += 1
-    # sns.heatmap(max_confusion_matrix_mlp, annot=True, fmt=".2f", cmap="Blues")
-    # plt.title(f'Matriz de Confusão - MLP (Maior Acurácia) - Acurácia: {max_accuracy_mlp:.2f} - Sensibilidade: {max_sensitivity_mlp:.2f} - Especificidade: {max_specificity_mlp:.2f}')
-
-    # plt.figure(nfig)
-    # nfig += 1
-    # max_simple_perceptron.plot_errors('Curva de Aprendizado - Perceptron Simples (Maior Acurácia)')
-    # plt.figure(nfig)
-    # nfig += 1
-    # min_simple_perceptron.plot_errors('Curva de Aprendizado - Perceptron Simples (Menor Acurácia)')
-    # plt.figure(nfig)
-    # nfig += 1
-    # max_adaline.plot_EQMs('Curva de Aprendizado - Adaline (Maior Acurácia)')
-    # plt.figure(nfig)
-    # nfig += 1
-    # min_adaline.plot_EQMs('Curva de Aprendizado - Adaline (Menor Acurácia)')
-    # plt.figure(nfig)
-    # nfig += 1
-    # max_mlp.plot_EQMs('Curva de Aprendizado - MLP (Maior Acurácia)')
-    # plt.figure(nfig)
-    # nfig += 1
-    # min_mlp.plot_EQMs('Curva de Aprendizado - MLP (Menor Acurácia)')
-    # plt.show()
-
-
-# if Config.CLASSIFICATION_PLOT_GRAPH:
-#     # Faz o plot 3d dos dados
-#     fig = plt.figure(0)
-#     ax = fig.add_subplot(111, projection='3d')
-#     ax.set_title('Dados Originais')
-#     ax.set_xlabel('X1')
-#     ax.set_ylabel('X2')
-#     ax.set_zlabel('X3')
-#     ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=y, cmap='viridis', label='Dados Originais')

@@ -64,9 +64,33 @@ mlp_instances = []
 for round in range(Config.CLASSIFICATION_N_ROUNDS):
     # Instanciando os modelos
     adaline = Adaline(η=Config.CLASSIFICATION_LEARNING_RATE, ϵ=Config.CLASSIFICATION_EPSILON, epochs=200)
-    mlp = MLP(input_size=3, q=[4], m=1, η=Config.CLASSIFICATION_LEARNING_RATE, ϵ=Config.CLASSIFICATION_EPSILON, tolleration=10, epochs=1000)
-    mlp_overfitted = MLP(input_size=3, q=[32, 16, 8], m=1, η=Config.CLASSIFICATION_LEARNING_RATE, ϵ=Config.CLASSIFICATION_EPSILON, tolleration=10, epochs=1000)
-    mlp_underfitted = MLP(input_size=3, q=[1], m=1, η=Config.CLASSIFICATION_LEARNING_RATE, ϵ=Config.CLASSIFICATION_EPSILON, tolleration=10, epochs=1000)
+    mlp = MLP(
+        input_size=3,
+        q=Config.CLASSIFICATION_MLP_LAYERS,
+        m=Config.CLASSIFICATION_MLP_OUTPUT_SIZE,
+        η=Config.CLASSIFICATION_LEARNING_RATE,
+        ϵ=Config.CLASSIFICATION_EPSILON,
+        tolleration=Config.CLASSIFICATION_MLP_TOLLERATION,
+        epochs=Config.CLASSIFICATION_EPOCHS
+    )
+    mlp_overfitted = MLP(
+        input_size=3,
+        q=Config.CLASSIFICATION_MLP_OVERFITTED_LAYERS,
+        m=Config.CLASSIFICATION_MLP_OUTPUT_SIZE,
+        η=Config.CLASSIFICATION_LEARNING_RATE,
+        ϵ=Config.CLASSIFICATION_EPSILON,
+        tolleration=Config.CLASSIFICATION_MLP_TOLLERATION,
+        epochs=Config.CLASSIFICATION_EPOCHS
+    )
+    mlp_underfitted = MLP(
+        input_size=3,
+        q=Config.CLASSIFICATION_MLP_UNDERFITTED_LAYERS,
+        m=Config.CLASSIFICATION_MLP_OUTPUT_SIZE,
+        η=Config.CLASSIFICATION_LEARNING_RATE,
+        ϵ=Config.CLASSIFICATION_EPSILON,
+        tolleration=Config.CLASSIFICATION_MLP_TOLLERATION,
+        epochs=Config.CLASSIFICATION_EPOCHS
+    )
     print(f"Rodada: {round + 1}")
     # Aleatorização dos dados
     index = np.random.permutation(spiral.shape[0])
@@ -94,22 +118,12 @@ for round in range(Config.CLASSIFICATION_N_ROUNDS):
     adaline.fit(X_train, y_train)
     predictions_adaline = adaline.predict_classification(X_test)
     predictions_adaline = np.where(predictions_adaline == -1, 0, predictions_adaline)
-    # MLP
-    # Codificando as classes
-    # y_train = [np.array([1, 0]) if i == 1 else np.array([0, 1]) for i in y_train]
-    # y_test = [np.array([1, 0]) if i == 1 else np.array([0, 1]) for i in y_test]
-    # y_validation = [np.array([1, 0]) if i == 1 else np.array([0, 1]) for i in y_validation]
     predictions_mlp = []
     mlp.train(X_train, y_train, X_validation, y_validation)
     for x in X_test:
         x = np.hstack([[-1], x])
         prediction = mlp.predict_regression(x.reshape(-1, 1))
-        # if prediction[0] > prediction[1]:
-        #     predictions_mlp.append(1)
-        # else:
-        #     predictions_mlp.append(0)
         predictions_mlp.append(1 if prediction.item() >= 0.5 else 0)
-        # predictions_mlp.append(1 if mlp.predict_classification(x) > 0.5 else 0)
     if round == 0:
         mlp_overfitted.train(X_train, y_train, X_validation, y_validation)
         mlp_underfitted.train(X_train, y_train, X_validation, y_validation)

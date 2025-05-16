@@ -42,9 +42,32 @@ r_s_mlp = []
 for round in range(Config.REGRESSION_N_ROUNDS):
     # Instanciação os modelo
     adaline = Adaline(η=Config.REGRESSION_LEARNING_RATE, ϵ=Config.REGRESSION_EPSILON, epochs=Config.REGRESSION_EPOCHS)
-    mlp = MLP(input_size=1, q=[2], m=1, η=0.1, ϵ=0.0001, tolleration=10, epochs=Config.REGRESSION_EPOCHS)
-    mlp_superfitted = MLP(input_size=1, q=[32, 16, 8], m=1, η=0.1, ϵ=0.0001, tolleration=10, epochs=Config.REGRESSION_EPOCHS)
-    mlp_underfitted = MLP(input_size=1, q=[1], m=1, η=0.1, ϵ=0.0001, tolleration=10, epochs=Config.REGRESSION_EPOCHS)
+    mlp = MLP(
+        input_size=1,
+        q=Config.REGRESSION_MLP_LAYERS,
+        m=Config.REGRESSION_MLP_OUTPUT_SIZE,
+        η=Config.REGRESSION_LEARNING_RATE,
+        ϵ=Config.REGRESSION_MLP_TOLLERATION,
+        tolleration=Config.REGRESSION_MLP_TOLLERATION,
+        epochs=Config.REGRESSION_EPOCHS
+    )
+    mlp_superfitted = MLP(
+        input_size=1,
+        q=Config.REGRESSION_MLP_SUPERFITTED_LAYERS,
+        m=Config.REGRESSION_MLP_OUTPUT_SIZE,
+        η=Config.REGRESSION_LEARNING_RATE,
+        ϵ=Config.REGRESSION_MLP_TOLLERATION,
+        tolleration=Config.REGRESSION_MLP_TOLLERATION,
+        epochs=Config.REGRESSION_EPOCHS
+    )
+    mlp_underfitted = MLP(
+        input_size=1,
+        q=Config.REGRESSION_MLP_UNDERFITTED_LAYERS,
+        m=Config.REGRESSION_MLP_OUTPUT_SIZE, η=Config.REGRESSION_LEARNING_RATE,
+        ϵ=Config.REGRESSION_MLP_TOLLERATION,
+        tolleration=Config.REGRESSION_MLP_TOLLERATION,
+        epochs=Config.REGRESSION_EPOCHS
+    )
     print(f"Rodada: {round + 1}")
     # Aleatorização dos dados
     index = np.random.permutation(aerogerador.shape[0])
