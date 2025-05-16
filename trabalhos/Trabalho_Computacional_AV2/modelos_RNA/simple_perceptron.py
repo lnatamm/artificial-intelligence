@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class SimplePerceptron:
     def __init__(self, η=0.01, epochs=50):
@@ -10,6 +11,7 @@ class SimplePerceptron:
         self.__η = η
         self.__epochs = epochs
         self.__weights = []
+        self.__errors = []
 
     def fit(self, X, y):
         X = np.hstack([-1 * np.ones((X.shape[0], 1)), X])  # Adiciona o -1 como primeira coluna (bias)
@@ -17,11 +19,17 @@ class SimplePerceptron:
         epoch = 0
         while True:
             # Calcula a combinação linear
-            linear_combination = X@self.__weights
-            # Aplica a função de ativação (step function)
-            output = np.where(linear_combination >= 0.0, 1, -1)
-            # Calcula os erros
-            errors = y - output
+            errors = []
+            for i in range(len(X)):
+                u = self.__weights.T @ X[i]
+                # Aplica a função de ativação (step function)
+                output = 1 if u >= 0.0 else -1
+                # Calcula o erro
+                error = y[i] - output
+                errors.append(error)
+                # Atualiza os pesos
+                self.__weights += self.__η * X[i] * error
+            self.__errors.append(np.sum(np.where(errors != 0, 1, errors)) / len(X))
             if np.all(errors == 0):
                 print(f"Convergiu após {epoch} épócas")
                 break
@@ -39,3 +47,10 @@ class SimplePerceptron:
         linear_output = X @ self.__weights
         # Aplica a função de ativação (step function)
         return np.where(linear_output >= 0.0, 1, -1)
+
+    def plot_errors(self, title='Erros'):
+        plt.plot(self.__errors)
+        plt.title(title)
+        plt.xlabel('Épocas')
+        plt.ylabel('Erro')
+        plt.ylim(0, 1.1)
