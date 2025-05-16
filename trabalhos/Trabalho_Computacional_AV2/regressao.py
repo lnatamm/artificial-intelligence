@@ -32,6 +32,7 @@ if Config.REGRESSION_PLOT_GRAPH:
     plt.xlabel('Vento (m/s)')
     plt.ylabel('Potência (kW)')
     plt.scatter(X, y, color='red', label='Dados Normalizados')
+    plt.show()
 
 eqms_adaline = []
 r_s_adaline = []
@@ -40,8 +41,10 @@ r_s_mlp = []
 
 for round in range(Config.REGRESSION_N_ROUNDS):
     # Instanciação os modelo
-    adaline = Adaline(η=0.0001, ϵ=0.0001, epochs=Config.REGRESSION_EPOCHS)
-    mlp = MLP(input_size=1, q=[2, 1], m=1, η=0.0001, ϵ=0.0001, tolleration=10, epochs=Config.REGRESSION_EPOCHS)
+    adaline = Adaline(η=Config.REGRESSION_LEARNING_RATE, ϵ=Config.REGRESSION_EPSILON, epochs=Config.REGRESSION_EPOCHS)
+    mlp = MLP(input_size=1, q=[2], m=1, η=0.1, ϵ=0.0001, tolleration=10, epochs=Config.REGRESSION_EPOCHS)
+    mlp_superfitted = MLP(input_size=1, q=[32, 16, 8], m=1, η=0.1, ϵ=0.0001, tolleration=10, epochs=Config.REGRESSION_EPOCHS)
+    mlp_underfitted = MLP(input_size=1, q=[1], m=1, η=0.1, ϵ=0.0001, tolleration=10, epochs=Config.REGRESSION_EPOCHS)
     print(f"Rodada: {round + 1}")
     # Aleatorização dos dados
     index = np.random.permutation(aerogerador.shape[0])
@@ -66,56 +69,46 @@ for round in range(Config.REGRESSION_N_ROUNDS):
         plt.figure(3)
         adaline.plot_EQMs()
     predictions_adaline = adaline.predict_regression(X_test.reshape(-1, 1))
-    # MSE (Erro Quadrático Médio)
-    EQM_adaline = np.mean((y_test - predictions_adaline) ** 2)
-    # R² (coeficiente de determinação)
-    ss_res_adaline = np.sum((y_test - predictions_adaline) ** 2)              # Soma dos quadrados dos resíduos
-    ss_tot_adaline = np.sum((y_test - np.mean(y_test)) ** 2)          # Soma total dos quadrados
-    r2_adaline = 1 - (ss_res_adaline / ss_tot_adaline)
-    print(f"EQM: {EQM_adaline:.4f}")
-    print(f"R²: {r2_adaline:.4f}")
-    eqms_adaline.append(EQM_adaline)
-    r_s_adaline.append(r2_adaline)
 
     # Multi-Layer Perceptron
-    mlp.train_regression(X_train.reshape(-1, 1), y_train.reshape(-1, 1), X_validation.reshape(-1, 1), y_validation.reshape(-1, 1))
-    if Config.REGRESSION_PLOT_GRAPH:
+    mlp.train(X_train.reshape(-1, 1), y_train.reshape(-1, 1), X_validation.reshape(-1, 1), y_validation.reshape(-1, 1))
+    if round == 0:
+        mlp_superfitted.train(X_train.reshape(-1, 1), y_train.reshape(-1, 1), X_validation.reshape(-1, 1), y_validation.reshape(-1, 1))
+        mlp_underfitted.train(X_train.reshape(-1, 1), y_train.reshape(-1, 1), X_validation.reshape(-1, 1), y_validation.reshape(-1, 1))
         plt.figure(4)
+        plt.title('MLP Superfitted')
+        mlp_superfitted.plot_EQMs("Superfitted")
+        plt.figure(5)
+        plt.title('MLP Underfitted')
+        mlp_underfitted.plot_EQMs("Underfitted")
+    if Config.REGRESSION_PLOT_GRAPH:
+        plt.figure(6)
         mlp.plot_EQMs()
     plt.show()
-    bp=1
     predictions_mlp = []
     for x in X_test:
         x = np.vstack((-1, x))
-        predictions_mlp.append(mlp.predict_regression(x.reshape(-1, 1)))
+        pred = mlp.predict_regression(x.reshape(-1, 1))
+        predictions_mlp.append(pred.item())
+    # MSE (Erro Quadrático Médio)
+    EQM_adaline = np.mean((y_test - predictions_adaline) ** 2)
+    print(f"EQM: {EQM_adaline:.4f}")
+    eqms_adaline.append(EQM_adaline)
     EQM_mlp = np.mean((y_test - predictions_mlp) ** 2)
-    ss_res_mlp = np.sum((y_test - predictions_mlp) ** 2)              # Soma dos quadrados dos resíduos
-    ss_tot_mlp = np.sum((y_test - np.mean(y_test)) ** 2)          # Soma total dos quadrados
-    r2_mlp = 1 - (ss_res_mlp / ss_tot_mlp)
     print(f"EQM: {EQM_mlp:.4f}")
-    print(f"R²: {r2_mlp:.4f}")
     eqms_mlp.append(EQM_mlp)
-    r_s_mlp.append(r2_mlp)
+
 metrics_adaline = {
     "mean_eqm": np.mean(eqms_adaline),
     "std_eqm": np.std(eqms_adaline),
     "max_eqm": np.max(eqms_adaline),
     "min_eqm": np.min(eqms_adaline),
-    "mean_r2": np.mean(r_s_adaline),
-    "std_r2": np.std(r_s_adaline),
-    "max_r2": np.max(r_s_adaline),
-    "min_r2": np.min(r_s_adaline),
-    "std_eqm": np.std(eqms_adaline),
 }
 metrics_mlp = {
     "mean_eqm": np.mean(eqms_mlp),
     "std_eqm": np.std(eqms_mlp),
     "max_eqm": np.max(eqms_mlp),
     "min_eqm": np.min(eqms_mlp),
-    "mean_r2": np.mean(r_s_mlp),
-    "std_r2": np.std(r_s_mlp),
-    "max_r2": np.max(r_s_mlp),
-    "min_r2": np.min(r_s_mlp),
 }
 models = [
     "Adaline",
@@ -130,8 +123,8 @@ metrics = {
         ),
     "Desvio Padrão EQM": 
         (
-            metrics_adaline["max_eqm"],
-            metrics_mlp["max_eqm"],
+            metrics_adaline["std_eqm"],
+            metrics_mlp["std_eqm"],
         ),
     "Máximo EQM": 
         (
@@ -142,26 +135,6 @@ metrics = {
         (
             metrics_adaline["min_eqm"],
             metrics_mlp["min_eqm"],
-        ),
-    "Média R²": 
-        (
-            metrics_adaline["mean_r2"],
-            metrics_mlp["mean_r2"],
-        ),
-    "Desvio Padrão R²": 
-        (
-            metrics_adaline["std_r2"],
-            metrics_mlp["std_r2"],
-        ),
-    "Máximo R²": 
-        (
-            metrics_adaline["max_r2"],
-            metrics_mlp["max_r2"],
-        ),
-    "Mínimo R²": 
-        (
-            metrics_adaline["min_r2"],
-            metrics_mlp["min_r2"],
         ),
 }
 
@@ -180,6 +153,6 @@ for tipo, medida in metrics.items():
 ax.set_title('Métricas dos modelos')
 ax.set_xticks(x + largura, models)
 ax.legend(loc='upper left', ncols=3)
-ax.set_ylim(0, 2)
+ax.set_ylim(0, .1)
 
 plt.show()
