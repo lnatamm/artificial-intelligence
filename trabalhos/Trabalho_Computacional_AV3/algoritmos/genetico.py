@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 class GeneticAlgorithm:
 
-    def __init__(self, f, N, p, min, max, n_bits=5, tournament_size=1/3, mutation_probability=0.02, crossover_probability=0.85, max_generations=10):
+    def __init__(self, f, N, p, min, max, n_bits=5, tournament_size=1/3, mutation_probability=0.02, crossover_probability=0.85, max_generations=10, patience=10):
         self.f = f
         self.N = N
         self.p = p
@@ -14,6 +14,7 @@ class GeneticAlgorithm:
         self.mutation_probability = mutation_probability
         self.crossover_probability = crossover_probability
         self.max_generations = max_generations
+        self.patience = patience
         self.population = np.random.randint(0, 2, size=(self.N, self.n_bits * self.p))
         self.best_individual = None
 
@@ -93,6 +94,7 @@ class GeneticAlgorithm:
 
     def start(self):
         generation = 0
+        patience_counter = 0
         while generation < self.max_generations:
             splitted_population = np.array([np.array_split(individual, self.p) for individual in self.population])
             fitness = self._apply_fitness(splitted_population)
@@ -100,8 +102,14 @@ class GeneticAlgorithm:
             if generation == 0 or np.max(fitness) > self.f(*decoded_best):
                 self.best_individual = splitted_population[np.argmax(fitness)]
                 print(f"Generation {generation}: Best fitness = {np.max(fitness)}, Best individual = {self.best_individual}, Decoded = {decoded_best}")
+                patience_counter = 0
             else:
                 print(f"Generation {generation}: No improvement")
+                patience_counter += 1
+                if patience_counter >= self.patience:
+                    print("No improvement for several generations, stopping early.")
+                    break
+
             
             selected_individuals = self._select(fitness)
             selected_individuals = self._crossover(selected_individuals)

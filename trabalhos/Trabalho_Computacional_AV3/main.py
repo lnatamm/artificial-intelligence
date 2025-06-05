@@ -13,6 +13,7 @@ genetic = GeneticAlgorithm(
     mutation_probability=0.02,
     n_bits=5,
     max_generations=100,
+    patience=20
 )
 
 x, y = genetic.start()
