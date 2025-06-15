@@ -73,15 +73,17 @@ class SimulatedAnnealing:
         plt.show()
 
 class SimulatedAnnealing8Queens:
-    def __init__(self, max_it=10000, t=100, decay=0.99):
+    def __init__(self, max_it=10000, t=100, decay=0.95, plot=False):
         self.max_it = max_it
         self.t = t
         self.decay = decay
+        self.plot = plot
         self.x_opt = np.random.randint(1, 9, size=8)
         self.f_opt = self.f(self.x_opt)
         self.avaliados = []
-        self.fig, self.ax = plt.subplots()
-        plt.ion()  # Ativa modo interativo para atualização em tempo real (ChatGPT fez a parte de plotagem))
+        if self.plot:
+            self.fig, self.ax = plt.subplots()
+            plt.ion()  # Ativa modo interativo para atualização em tempo real (ChatGPT fez a parte de plotagem))
 
     # Método para verificar quantos conflitos existem
     def h(self, x):
@@ -115,7 +117,7 @@ class SimulatedAnnealing8Queens:
         # Posiciona as rainhas
         for col in range(8):
             lin = 8 - x[col]  # converter linha para o sistema do matplotlib
-            self.ax.text(col + 0.5, lin + 0.5, '♛', fontsize=24, ha='center', va='center', color='red')
+            self.ax.text(col + 0.5, lin + 0.5, '♛', fontsize=24, ha='center', va='center', color='k')
 
         self.ax.set_xlim(0, 8)
         self.ax.set_ylim(0, 8)
@@ -137,21 +139,23 @@ class SimulatedAnnealing8Queens:
                 self.x_opt = x_cand
                 self.f_opt = f_cand
                 self.avaliados.append(self.f_opt)
-                self.plot_tabuleiro(self.x_opt)
 
             self.t *= self.decay
             iteracao += 1
 
         print(f"Melhor solução: {self.x_opt}, Aptidão: {self.f_opt}")
-        plt.ioff()  # Desativa modo interativo
-        plt.show()
+        if self.plot:
+            self.plot_tabuleiro(self.x_opt)
+        
+            plt.ioff()  # Desativa modo interativo
+            plt.show()
 
-        # Plot evolução da aptidão
-        plt.figure()
-        plt.plot(self.avaliados)
-        plt.xlabel("Iterações")
-        plt.ylabel("f(x)")
-        plt.title("Evolução da solução - 8 Rainhas")
-        plt.grid(True)
-        plt.show()
+            # Plot evolução da aptidão
+            plt.figure()
+            plt.plot(self.avaliados)
+            plt.xlabel("Iterações")
+            plt.ylabel("f(x)")
+            plt.title("Evolução da solução - 8 Rainhas")
+            plt.grid(True)
+            plt.show()
 
